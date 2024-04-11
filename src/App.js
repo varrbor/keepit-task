@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import Entry from './components/Entry/Entry';
 import './App.css';
 
 function App() {
@@ -28,30 +28,30 @@ function App() {
       }
     ]
   };
-  function Entry({ entry, depth }) {
-    const [isExpanded, setExpandable] = useState(false);
-    return (
-      <div>
-        {entry.children ? (
-          <button onClick={() => setExpandable(!isExpanded)}>
-            {isExpanded ? '- ' : '+ '}
-            {entry.name}
-          </button>
-        ) : (
-          <div>{entry.name}</div>
-        )}
+  // function Entry({ entry, depth }) {
+  //   const [isExpanded, setExpandable] = useState(false);
+  //   return (
+  //     <div>
+  //       {entry.children ? (
+  //         <button onClick={() => setExpandable(!isExpanded)}>
+  //           {isExpanded ? '- ' : '+ '}
+  //           {entry.name}
+  //         </button>
+  //       ) : (
+  //         <div>{entry.name}</div>
+  //       )}
 
-        {isExpanded && (
-          <div style={{ paddingLeft: `${depth * 10}px` }}>
-            {entry.children &&
-              entry.children.map((entry) => (
-                <Entry key={entry.name} entry={entry} depth={depth + 1} />
-              ))}
-          </div>
-        )}
-      </div>
-    );
-  }
+  //       {isExpanded && (
+  //         <div style={{ paddingLeft: `${depth * 10}px` }}>
+  //           {entry.children &&
+  //             entry.children.map((entry) => (
+  //               <Entry key={entry.name} entry={entry} depth={depth + 1} />
+  //             ))}
+  //         </div>
+  //       )}
+  //     </div>
+  //   );
+  // }
   return (
     <div className="App">
       {files.children.map((entry) => (
