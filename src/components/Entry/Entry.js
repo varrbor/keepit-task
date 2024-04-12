@@ -1,13 +1,23 @@
 import { useState } from 'react';
 import './Entry.css';
-function Entry({ entry, depth, createCategoryHandler, deleteCategoryHandler }) {
+function Entry({
+  entry,
+  depth,
+  createCategoryHandler,
+  deleteCategoryHandler,
+  updateCategoryHandler
+}) {
   console.log(1111, entry);
   const [isExpanded, setExpandable] = useState(false);
   function onCreateSubfolder(type) {
     createCategoryHandler(type, entry.id);
   }
-  function onDeleteSubfolder(type) {
+  function onDeleteSubfolder() {
     deleteCategoryHandler(entry.id);
+  }
+
+  function onUpdateSubfolder() {
+    updateCategoryHandler(entry.id);
   }
   return (
     <div>
@@ -21,6 +31,7 @@ function Entry({ entry, depth, createCategoryHandler, deleteCategoryHandler }) {
             <button onClick={() => onCreateSubfolder('dir')}>create subfolder</button>
             <button onClick={() => onCreateSubfolder('file')}>create file</button>
             <button onClick={() => onDeleteSubfolder('file')}> delete folder</button>
+            <button onClick={() => onUpdateSubfolder('file')}> rename folder</button>
           </div>
         </div>
       ) : (
@@ -28,6 +39,7 @@ function Entry({ entry, depth, createCategoryHandler, deleteCategoryHandler }) {
           {entry.name}
           <div className="handlers">
             <button onClick={() => onDeleteSubfolder('file')}> delete file</button>
+            <button onClick={() => onUpdateSubfolder('file')}> rename file</button>
           </div>
         </div>
       )}
@@ -42,6 +54,7 @@ function Entry({ entry, depth, createCategoryHandler, deleteCategoryHandler }) {
                 depth={depth + 1}
                 createCategoryHandler={createCategoryHandler}
                 deleteCategoryHandler={deleteCategoryHandler}
+                updateCategoryHandler={updateCategoryHandler}
               />
             ))}
         </div>

@@ -30,6 +30,35 @@ export const deleteCategory = (id, categories) => {
   return categories.map((category) => deleteCategoryRecursion(category, id));
 };
 
+export const updateCategory = (id, categories, name) => {
+  if (categories.map((category) => category.id).includes(id)) {
+    return categories.map((category) => {
+      if (category.id === id) {
+        return { ...category, name };
+      }
+      return category;
+    });
+  }
+  return categories.map((category) => updateCategoryRecursion(category, id, name));
+};
+
+function updateCategoryRecursion(category, id, name) {
+  if (category.subCategories.map((c) => c.id).includes(id))
+    return {
+      ...category,
+      subCategories: category.subCategories.map((category) => {
+        if (category.id === id) {
+          return { ...category, name };
+        }
+        return category;
+      })
+    };
+  return {
+    ...category,
+    subCategories: category.subCategories.map((c) => updateCategoryRecursion(c, id, name))
+  };
+}
+
 function deleteCategoryRecursion(tree, id) {
   if (tree.subCategories.map((c) => c.id).includes(id))
     return {
@@ -65,6 +94,12 @@ function App() {
     setEntities((prev) => deleteCategory(id, prev));
   };
 
+  const updateCategoryHandler = (id) => {
+    var uname = prompt(`Please provide the new name`);
+    setEntities((prev) => updateCategory(id, prev, uname));
+    // setUpdateInputVisiblity(false);
+  };
+
   return (
     <div className="App">
       <div className="header">
@@ -83,6 +118,7 @@ function App() {
           depth={1}
           createCategoryHandler={createCategoryHandler}
           deleteCategoryHandler={deleteCategoryHandler}
+          updateCategoryHandler={updateCategoryHandler}
         />
       ))}
     </div>
