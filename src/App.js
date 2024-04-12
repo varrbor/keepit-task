@@ -23,6 +23,25 @@ const createCategoryRecursion = (currentCategory, newCategory, parentId) => {
   };
 };
 
+export const deleteCategory = (id, categories) => {
+  if (categories.map((category) => category.id).includes(id)) {
+    return categories.filter((category) => category.id !== id);
+  }
+  return categories.map((category) => deleteCategoryRecursion(category, id));
+};
+
+function deleteCategoryRecursion(tree, id) {
+  if (tree.subCategories.map((c) => c.id).includes(id))
+    return {
+      ...tree,
+      subCategories: tree.subCategories.filter((c) => c.id !== id)
+    };
+  return {
+    ...tree,
+    subCategories: tree.subCategories.map((c) => deleteCategoryRecursion(c, id))
+  };
+}
+
 function App() {
   const [entities, setEntities] = useState([]);
 
@@ -42,6 +61,10 @@ function App() {
     }
   };
 
+  const deleteCategoryHandler = (id) => {
+    setEntities((prev) => deleteCategory(id, prev));
+  };
+
   return (
     <div className="App">
       <div className="header">
@@ -59,6 +82,7 @@ function App() {
           entry={entry}
           depth={1}
           createCategoryHandler={createCategoryHandler}
+          deleteCategoryHandler={deleteCategoryHandler}
         />
       ))}
     </div>

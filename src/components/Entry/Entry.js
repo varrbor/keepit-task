@@ -1,15 +1,18 @@
 import { useState } from 'react';
 import './Entry.css';
-function Entry({ entry, depth, createCategoryHandler }) {
+function Entry({ entry, depth, createCategoryHandler, deleteCategoryHandler }) {
   console.log(1111, entry);
   const [isExpanded, setExpandable] = useState(false);
   function onCreateSubfolder(type) {
     createCategoryHandler(type, entry.id);
   }
+  function onDeleteSubfolder(type) {
+    deleteCategoryHandler(entry.id);
+  }
   return (
     <div>
       {entry.type === 'dir' ? (
-        <div className='main'>
+        <div className="main">
           <button className="dir" onClick={() => setExpandable(!isExpanded)}>
             {isExpanded ? '- ' : '+ '}
             {entry.name}
@@ -17,10 +20,16 @@ function Entry({ entry, depth, createCategoryHandler }) {
           <div className="handlers">
             <button onClick={() => onCreateSubfolder('dir')}>create subfolder</button>
             <button onClick={() => onCreateSubfolder('file')}>create file</button>
+            <button onClick={() => onDeleteSubfolder('file')}> delete folder</button>
           </div>
         </div>
       ) : (
-        <div className="file">{entry.name}</div>
+        <div className="main">
+          {entry.name}
+          <div className="handlers">
+            <button onClick={() => onDeleteSubfolder('file')}> delete file</button>
+          </div>
+        </div>
       )}
 
       {isExpanded && (
@@ -32,6 +41,7 @@ function Entry({ entry, depth, createCategoryHandler }) {
                 entry={entry}
                 depth={depth + 1}
                 createCategoryHandler={createCategoryHandler}
+                deleteCategoryHandler={deleteCategoryHandler}
               />
             ))}
         </div>
