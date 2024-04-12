@@ -1,31 +1,38 @@
 import { useState } from 'react';
-
-function Entry({ entry, depth, createSubfolder }) {
+import './Entry.css';
+function Entry({ entry, depth, createCategoryHandler }) {
+  console.log(1111, entry);
   const [isExpanded, setExpandable] = useState(false);
-  function onCreateSubfolder() {
-    var subfolderName = prompt('Please provide the name of new folder');
-    createSubfolder(subfolderName);
+  function onCreateSubfolder(type) {
+    createCategoryHandler(type, entry.id);
   }
   return (
     <div>
-      {entry.children ? (
-        <>
-          {' '}
-          <button onClick={() => setExpandable(!isExpanded)}>
+      {entry.type === 'dir' ? (
+        <div className='main'>
+          <button className="dir" onClick={() => setExpandable(!isExpanded)}>
             {isExpanded ? '- ' : '+ '}
             {entry.name}
           </button>
-          <button onClick={() => onCreateSubfolder()}>create subfolder</button>
-        </>
+          <div className="handlers">
+            <button onClick={() => onCreateSubfolder('dir')}>create subfolder</button>
+            <button onClick={() => onCreateSubfolder('file')}>create file</button>
+          </div>
+        </div>
       ) : (
-        <div>{entry.name}</div>
+        <div className="file">{entry.name}</div>
       )}
 
       {isExpanded && (
         <div style={{ paddingLeft: `${depth * 10}px` }}>
-          {entry.children &&
-            entry.children.map((entry) => (
-              <Entry key={entry.name} entry={entry} depth={depth + 1} />
+          {entry.subCategories &&
+            entry.subCategories.map((entry) => (
+              <Entry
+                key={entry.id}
+                entry={entry}
+                depth={depth + 1}
+                createCategoryHandler={createCategoryHandler}
+              />
             ))}
         </div>
       )}

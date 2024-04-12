@@ -2,56 +2,64 @@ import Entry from './components/Entry/Entry';
 import './App.css';
 import { useState } from 'react';
 
-const files = {
-  children: [
-    {
-      name: 'node_modules',
-      children: [
-        {
-          name: 'joi',
-          children: [
-            {
-              name: 'package.json'
-            },
-            {
-              name: 'vite.config.ts'
-            }
-          ]
-        }
-      ]
-    },
-    {
-      name: 'package.json'
-    },
-    {
-      name: 'vite.config.ts'
-    }
-  ]
+export const createCategory = (categories, newCategory, parentId) => {
+  if (parentId === 'root') {
+    return [...categories, newCategory];
+  }
+  return categories.map((category) => createCategoryRecursion(category, newCategory, parentId));
+};
+
+const createCategoryRecursion = (currentCategory, newCategory, parentId) => {
+  if (currentCategory.id === parentId)
+    return {
+      ...currentCategory,
+      subCategories: [...currentCategory.subCategories, newCategory]
+    };
+  return {
+    ...currentCategory,
+    subCategories: currentCategory.subCategories.map((c) =>
+      createCategoryRecursion(c, newCategory, parentId)
+    )
+  };
 };
 
 function App() {
-  const [entities, setEntities] = useState(files.children);
+  const [entities, setEntities] = useState([]);
 
-  function createFolder(name) {
-    var uname = prompt('Please provide the name of new folder');
-    console.log(name);
-
-    setEntities([...entities, { name: uname, children: [] }]);
-  }
-
-  function createFile(name) {
-    var uname = prompt('Please provide the name of new file');
-    console.log(name);
-
-    setEntities([...entities, { name: uname }]);
-  }
+  const createCategoryHandler = (type, id) => {
+    console.log(id);
+    var uname = prompt(`Please provide the name of new ${type === 'dir' ? `folder` : `file`} `);
+    const newCategory = {
+      id: Date.now(),
+      type: type,
+      name: uname,
+      subCategories: []
+    };
+    if (id === undefined) {
+      setEntities((prevCategories) => createCategory(prevCategories, newCategory, 'root'));
+    } else {
+      setEntities((prevCategories) => createCategory(prevCategories, newCategory, id));
+    }
+  };
 
   return (
     <div className="App">
-      <button onClick={() => createFolder()}>create folder</button>
-      <button onClick={() => createFile()}>create file</button>
+      <div className="header">
+        <button className="header-button" style={{}} onClick={() => createCategoryHandler('dir')}>
+          create folder
+        </button>
+        <button className="header-button" onClick={() => createCategoryHandler('file')}>
+          create file
+        </button>
+      </div>
+
       {entities.map((entry) => (
-        <Entry key={entry.name} entry={entry} depth={1} />
+        <Entry
+          key={entry.id}
+          entry={entry}
+          depth={1}
+          createCategoryHandler={createCategoryHandler}
+        />
       ))}
     </div>
   );

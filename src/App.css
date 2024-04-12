@@ -1,6 +1,16 @@
 .App {
   text-align: left;
   padding: 50px;
-  /* border: 1px solid red; */
+  
+}
+.header{
+  border-bottom: 1px solid black;
+}
+.main {
+  display: flex;
+  align-items: center;
+}
+.header-button{
+  margin: 5px;
 }
 
