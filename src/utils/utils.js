@@ -68,7 +68,6 @@ function deleteCategoryRecursion(tree, id) {
 }
 
 export const hideCategory = (categories, type, isChecked, cache) => {
-  console.log(cache, isChecked);
   if (isChecked) {
     return categories
       .filter((category) => category.type !== type)
@@ -77,6 +76,24 @@ export const hideCategory = (categories, type, isChecked, cache) => {
     return cache.map((category) => updateStateRecursion(category));
   }
 };
+
+export const filterCategory = (categories, startDate) => {
+  if (!startDate) return;
+
+  return categories
+    .filter((category) => category.id < startDate)
+    .map((category) => filterRecursion(category, startDate));
+};
+
+function filterRecursion(tree, date) {
+  if (!tree) return;
+  return {
+    ...tree,
+    subCategories: tree.subCategories
+      .filter((category) => category.id < date)
+      .map((c) => updateStateRecursion(c))
+  };
+}
 
 function hideCategoryRecursion(tree, type) {
   if (!tree) return;
@@ -89,7 +106,6 @@ function hideCategoryRecursion(tree, type) {
 }
 
 function updateStateRecursion(tree) {
-  console.log('tree', tree);
   if (!tree) return;
   return {
     ...tree,

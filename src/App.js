@@ -1,12 +1,21 @@
 import Entry from './components/Entry/Entry';
 import './App.css';
 import { useEffect, useState } from 'react';
-import { createCategory, deleteCategory, updateCategory, hideCategory } from './utils/utils';
+import {
+  createCategory,
+  deleteCategory,
+  updateCategory,
+  hideCategory,
+  filterCategory
+} from './utils/utils';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 function App() {
   const [entities, setEntities] = useState([]);
   const [isChecked, setIsChecked] = useState(false);
   const [cache, setCache] = useState([]);
+  const [startDate, setStartDate] = useState(Date.now());
 
   const createCategoryHandler = (type, id) => {
     let uname = prompt(`Please provide the name of new ${type === 'dir' ? `folder` : `file`} `);
@@ -40,6 +49,10 @@ function App() {
     setEntities((prev) => hideCategory(prev, 'file', isChecked, cache));
   };
 
+  const filterByDateHandler = () => {
+    setEntities((prev) => filterCategory(prev, startDate));
+  };
+
   const checkHandler = () => {
     setIsChecked(!isChecked);
   };
@@ -47,6 +60,10 @@ function App() {
   useEffect(() => {
     hideCategoryHandler();
   }, [isChecked]);
+
+  useEffect(() => {
+    filterByDateHandler();
+  }, [startDate]);
 
   return (
     <div className="App">
@@ -60,6 +77,11 @@ function App() {
         <div>
           <label htmlFor="button"> show folders only</label>
           <input checked={isChecked} onChange={checkHandler} type="checkbox"></input>
+          <DatePicker
+            dateFormat="Pp"
+            selected={startDate}
+            onChange={(date) => setStartDate(Date.parse(date))}
+          />
         </div>
       </div>
 
