@@ -7,7 +7,6 @@ function Entry({
   deleteCategoryHandler,
   updateCategoryHandler
 }) {
-  console.log(1111, entry);
   const [isExpanded, setExpandable] = useState(false);
   function onCreateSubfolder(type) {
     createCategoryHandler(type, entry.id);

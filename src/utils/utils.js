@@ -66,3 +66,33 @@ function deleteCategoryRecursion(tree, id) {
     subCategories: tree.subCategories.map((c) => deleteCategoryRecursion(c, id))
   };
 }
+
+export const hideCategory = (categories, type, isChecked, cache) => {
+  console.log(cache, isChecked);
+  if (isChecked) {
+    return categories
+      .filter((category) => category.type !== type)
+      .map((category) => hideCategoryRecursion(category, type));
+  } else {
+    return cache.map((category) => updateStateRecursion(category));
+  }
+};
+
+function hideCategoryRecursion(tree, type) {
+  if (!tree) return;
+  return {
+    ...tree,
+    subCategories: tree.subCategories
+      .filter((category) => category.type !== type)
+      .map((c) => hideCategoryRecursion(c, type))
+  };
+}
+
+function updateStateRecursion(tree) {
+  console.log('tree', tree);
+  if (!tree) return;
+  return {
+    ...tree,
+    subCategories: tree.subCategories.map((c) => updateStateRecursion(c))
+  };
+}
