@@ -3,18 +3,26 @@ import './Entry.css';
 import { ENTRY_TYPES } from '../../constants/entryTypes';
 import type { EntryType } from '../../constants/entryTypes';
 import type { TreeEntry } from '../../types';
+import InlineInput from '../InlineInput/InlineInput';
 
 interface EntryProps {
   entry: TreeEntry;
   depth: number;
-  onCreate: (type: EntryType, id: number) => void;
+  onConfirmCreate: (type: EntryType, name: string, parentId: number) => void;
   onDelete: (id: number) => void;
-  onRename: (id: number) => void;
+  onRename: (id: number, name: string) => void;
 }
 
-function Entry({ entry, depth, onCreate, onDelete, onRename }: EntryProps) {
+function Entry({ entry, depth, onConfirmCreate, onDelete, onRename }: EntryProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [pendingChild, setPendingChild] = useState<EntryType | null>(null);
   const isDir = entry.type === ENTRY_TYPES.DIR;
+
+  const startChildCreate = (type: EntryType) => {
+    setPendingChild(type);
+    setIsExpanded(true);
+  };
 
   return (
     <div>
@@ -31,40 +39,70 @@ function Entry({ entry, depth, onCreate, onDelete, onRename }: EntryProps) {
         )}
 
         <span className="entry-icon">{isDir ? '📁' : '📄'}</span>
-        <span className={`entry-name${isDir ? ' is-dir' : ''}`}>{entry.name}</span>
 
-        <div className="entry-actions">
-          {isDir && (
-            <>
-              <button className="entry-btn" onClick={() => onCreate(ENTRY_TYPES.DIR, entry.id)}>
-                + folder
-              </button>
-              <button className="entry-btn" onClick={() => onCreate(ENTRY_TYPES.FILE, entry.id)}>
-                + file
-              </button>
-            </>
-          )}
-          <button className="entry-btn" onClick={() => onRename(entry.id)}>
-            rename
-          </button>
-          <button className="entry-btn danger" onClick={() => onDelete(entry.id)}>
-            delete
-          </button>
-        </div>
+        {isRenaming ? (
+          <InlineInput
+            initialValue={entry.name}
+            onConfirm={(name) => {
+              onRename(entry.id, name);
+              setIsRenaming(false);
+            }}
+            onCancel={() => setIsRenaming(false)}
+          />
+        ) : (
+          <span className={`entry-name${isDir ? ' is-dir' : ''}`}>{entry.name}</span>
+        )}
+
+        {!isRenaming && (
+          <div className="entry-actions">
+            {isDir && (
+              <>
+                <button className="entry-btn" onClick={() => startChildCreate(ENTRY_TYPES.DIR)}>
+                  + folder
+                </button>
+                <button className="entry-btn" onClick={() => startChildCreate(ENTRY_TYPES.FILE)}>
+                  + file
+                </button>
+              </>
+            )}
+            <button className="entry-btn" onClick={() => setIsRenaming(true)}>
+              rename
+            </button>
+            <button className="entry-btn danger" onClick={() => onDelete(entry.id)}>
+              delete
+            </button>
+          </div>
+        )}
       </div>
 
-      {isDir && isExpanded && entry.subCategories.length > 0 && (
+      {isDir && isExpanded && (
         <div>
           {entry.subCategories.map((sub) => (
             <Entry
               key={sub.id}
               entry={sub}
               depth={depth + 1}
-              onCreate={onCreate}
+              onConfirmCreate={onConfirmCreate}
               onDelete={onDelete}
               onRename={onRename}
             />
           ))}
+          {pendingChild && (
+            <div className="entry-row" style={{ paddingLeft: `${16 + (depth + 1) * 20}px` }}>
+              <span className="entry-chevron-gap" />
+              <span className="entry-icon">
+                {pendingChild === ENTRY_TYPES.DIR ? '📁' : '📄'}
+              </span>
+              <InlineInput
+                placeholder={pendingChild === ENTRY_TYPES.DIR ? 'Folder name…' : 'File name…'}
+                onConfirm={(name) => {
+                  onConfirmCreate(pendingChild, name, entry.id);
+                  setPendingChild(null);
+                }}
+                onCancel={() => setPendingChild(null)}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>

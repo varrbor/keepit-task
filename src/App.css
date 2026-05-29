@@ -68,7 +68,6 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  overflow: hidden;
 }
 
 .header-left {
