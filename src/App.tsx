@@ -1,7 +1,7 @@
 import Entry from './components/Entry/Entry';
 import InlineInput from './components/InlineInput/InlineInput';
 import './App.css';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   addEntry,
   removeEntry,
@@ -30,28 +30,29 @@ function App() {
     () => localStorage.getItem('keepit-folders-only') === 'true'
   );
 
-  const [filterDate, setFilterDate] = useState<Date>(new Date());
-  const [items, setItems] = useState<TreeEntry[]>(allItems);
+  const [filterDate, setFilterDate] = useState<Date | null>(null);
   const [pendingRootCreate, setPendingRootCreate] = useState<EntryType | null>(null);
+
+  const items = useMemo(() => {
+    const dateFiltered = filterDate ? applyDateFilter(allItems, filterDate.getTime()) : allItems;
+    return applyFileVisibility(dateFiltered, ENTRY_TYPES.FILE, showFoldersOnly, dateFiltered);
+  }, [allItems, filterDate, showFoldersOnly]);
 
   const handleConfirmCreate = (type: EntryType, name: string, parentId: number | 'root'): void => {
     const sanitized = sanitizeName(name);
     if (!sanitized) return;
     const newEntry: TreeEntry = { id: Date.now(), type, name: sanitized, subCategories: [] };
-    setItems((prev) => addEntry(prev, newEntry, parentId));
     setAllItems((prev) => addEntry(prev, newEntry, parentId));
     if (parentId === 'root') setPendingRootCreate(null);
   };
 
   const handleDelete = (id: number): void => {
-    setItems((prev) => removeEntry(id, prev));
     setAllItems((prev) => removeEntry(id, prev));
   };
 
   const handleRename = (id: number, name: string): void => {
     const sanitized = sanitizeName(name);
     if (!sanitized) return;
-    setItems((prev) => renameEntry(id, prev, sanitized));
     setAllItems((prev) => renameEntry(id, prev, sanitized));
   };
 
@@ -66,14 +67,6 @@ function App() {
   useEffect(() => {
     localStorage.setItem('keepit-folders-only', String(showFoldersOnly));
   }, [showFoldersOnly]);
-
-  useEffect(() => {
-    setItems(applyFileVisibility(allItems, ENTRY_TYPES.FILE, showFoldersOnly, allItems));
-  }, [showFoldersOnly]);
-
-  useEffect(() => {
-    setItems(applyDateFilter(allItems, filterDate.getTime()));
-  }, [filterDate]);
 
   return (
     <div className="App">
@@ -101,9 +94,9 @@ function App() {
           <DatePicker
             dateFormat="Pp"
             selected={filterDate}
-            onChange={(date: Date | null) => {
-              if (date) setFilterDate(date);
-            }}
+            onChange={(date: Date | null) => setFilterDate(date)}
+            isClearable
+            placeholderText="Filter by date…"
           />
         </div>
       </header>
