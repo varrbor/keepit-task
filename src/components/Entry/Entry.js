@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import './Entry.css';
+import { ENTRY_TYPES } from '../../constants/entryTypes';
 
 function Entry({ entry, depth, onCreate, onDelete, onRename }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const isDir = entry.type === 'dir';
+  const isDir = entry.type === ENTRY_TYPES.DIR;
 
   return (
     <div>
@@ -25,10 +26,10 @@ function Entry({ entry, depth, onCreate, onDelete, onRename }) {
         <div className="entry-actions">
           {isDir && (
             <>
-              <button className="entry-btn" onClick={() => onCreate('dir', entry.id)}>
+              <button className="entry-btn" onClick={() => onCreate(ENTRY_TYPES.DIR, entry.id)}>
                 + folder
               </button>
-              <button className="entry-btn" onClick={() => onCreate('file', entry.id)}>
+              <button className="entry-btn" onClick={() => onCreate(ENTRY_TYPES.FILE, entry.id)}>
                 + file
               </button>
             </>
