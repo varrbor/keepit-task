@@ -157,6 +157,36 @@ body {
   flex-shrink: 0;
 }
 
+/* ── Search input ────────────────────────────────────────── */
+
+.search-input {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--text);
+  background: var(--surface);
+  width: 160px;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* hide the native clear button — the field value is controlled */
+.search-input::-webkit-search-cancel-button {
+  display: none;
+}
+
 .react-datepicker-wrapper {
   width: auto;
 }

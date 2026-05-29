@@ -27,6 +27,11 @@ async function clickAction(page: Page, name: string, action: string) {
   await page.click(`.entry-row:has(.entry-name:text("${name}")) .entry-btn:text("${action}")`);
 }
 
+async function deleteItem(page: Page, name: string) {
+  await clickAction(page, name, 'delete');
+  await page.click(`.entry-row:has(.entry-confirm-label) .entry-btn:text("yes")`);
+}
+
 // ── Tests ──────────────────────────────────────────────────
 
 test.describe('Empty state', () => {
@@ -83,9 +88,24 @@ test.describe('Create', () => {
 test.describe('Delete', () => {
   test.beforeEach(({ page }) => clearStorage(page));
 
-  test('deletes a file', async ({ page }) => {
+  test('shows confirmation before deleting', async ({ page }) => {
     await createItem(page, 'file', 'temp.txt');
     await clickAction(page, 'temp.txt', 'delete');
+    await expect(page.locator('.entry-confirm-label')).toBeVisible();
+    await expect(page.locator('.entry-name:text("temp.txt")')).toBeVisible();
+  });
+
+  test('"no" cancels the delete', async ({ page }) => {
+    await createItem(page, 'file', 'keep.txt');
+    await clickAction(page, 'keep.txt', 'delete');
+    await page.click(`.entry-row:has(.entry-confirm-label) .entry-btn:text("no")`);
+    await expect(page.locator('.entry-name:text("keep.txt")')).toBeVisible();
+    await expect(page.locator('.entry-confirm-label')).not.toBeVisible();
+  });
+
+  test('deletes a file', async ({ page }) => {
+    await createItem(page, 'file', 'temp.txt');
+    await deleteItem(page, 'temp.txt');
     await expect(page.locator('.entry-name:text("temp.txt")')).not.toBeVisible();
     await expect(page.locator('.tree-empty')).toBeVisible();
   });
@@ -98,7 +118,7 @@ test.describe('Delete', () => {
     await page.fill('.inline-input', 'child.txt');
     await page.keyboard.press('Enter');
     await expect(page.locator('.entry-name:text("child.txt")')).toBeVisible();
-    await clickAction(page, 'ToDelete', 'delete');
+    await deleteItem(page, 'ToDelete');
     await expect(page.locator('.entry-name:text("ToDelete")')).not.toBeVisible();
     await expect(page.locator('.entry-name:text("child.txt")')).not.toBeVisible();
     await expect(page.locator('.tree-empty')).toBeVisible();
@@ -171,6 +191,59 @@ test.describe('Folders-only filter', () => {
     await createItem(page, 'file', 'readme.txt');
     await page.check('.filter-checkbox input[type="checkbox"]');
     await page.uncheck('.filter-checkbox input[type="checkbox"]');
+    await expect(page.locator('.entry-name:text("readme.txt")')).toBeVisible();
+  });
+});
+
+test.describe('Search filter', () => {
+  test.beforeEach(({ page }) => clearStorage(page));
+
+  test('filters entries by name', async ({ page }) => {
+    await createItem(page, 'folder', 'Alpha');
+    await createItem(page, 'folder', 'Beta');
+    await page.fill('.search-input', 'Alpha');
+    await expect(page.locator('.entry-name:text("Alpha")')).toBeVisible();
+    await expect(page.locator('.entry-name:text("Beta")')).not.toBeVisible();
+  });
+
+  test('clearing search restores all entries', async ({ page }) => {
+    await createItem(page, 'folder', 'Alpha');
+    await createItem(page, 'folder', 'Beta');
+    await page.fill('.search-input', 'Alpha');
+    await page.fill('.search-input', '');
+    await expect(page.locator('.entry-name:text("Alpha")')).toBeVisible();
+    await expect(page.locator('.entry-name:text("Beta")')).toBeVisible();
+  });
+});
+
+test.describe('Filter composition', () => {
+  test.beforeEach(({ page }) => clearStorage(page));
+
+  test('search and folders-only both apply simultaneously', async ({ page }) => {
+    await createItem(page, 'folder', 'Alpha');
+    await createItem(page, 'folder', 'Beta');
+    await createItem(page, 'file', 'readme.txt');
+
+    // enable folders-only — readme hidden
+    await page.check('.filter-checkbox input[type="checkbox"]');
+    await expect(page.locator('.entry-name:text("readme.txt")')).not.toBeVisible();
+
+    // also search "Alpha" — Beta now hidden too, readme still hidden
+    await page.fill('.search-input', 'Alpha');
+    await expect(page.locator('.entry-name:text("Alpha")')).toBeVisible();
+    await expect(page.locator('.entry-name:text("Beta")')).not.toBeVisible();
+    await expect(page.locator('.entry-name:text("readme.txt")')).not.toBeVisible();
+
+    // disable folders-only — readme still hidden by search, Beta still hidden
+    await page.uncheck('.filter-checkbox input[type="checkbox"]');
+    await expect(page.locator('.entry-name:text("Alpha")')).toBeVisible();
+    await expect(page.locator('.entry-name:text("Beta")')).not.toBeVisible();
+    await expect(page.locator('.entry-name:text("readme.txt")')).not.toBeVisible();
+
+    // clear search — all three visible
+    await page.fill('.search-input', '');
+    await expect(page.locator('.entry-name:text("Alpha")')).toBeVisible();
+    await expect(page.locator('.entry-name:text("Beta")')).toBeVisible();
     await expect(page.locator('.entry-name:text("readme.txt")')).toBeVisible();
   });
 });

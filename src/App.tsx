@@ -7,7 +7,8 @@ import {
   removeEntry,
   renameEntry,
   applyFileVisibility,
-  applyDateFilter
+  applyDateFilter,
+  applyNameFilter
 } from './utils/utils';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -15,6 +16,14 @@ import { ENTRY_TYPES } from './constants/entryTypes';
 import type { EntryType } from './constants/entryTypes';
 import { sanitizeTree, sanitizeName } from './utils/sanitize';
 import type { TreeEntry } from './types';
+
+// Monotonically increasing ID — prevents collisions on rapid creation
+let _lastId = 0;
+function genId(): number {
+  const now = Date.now();
+  _lastId = now > _lastId ? now : _lastId + 1;
+  return _lastId;
+}
 
 function App() {
   const [allItems, setAllItems] = useState<TreeEntry[]>(() => {
@@ -31,17 +40,22 @@ function App() {
   );
 
   const [filterDate, setFilterDate] = useState<Date | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [pendingRootCreate, setPendingRootCreate] = useState<EntryType | null>(null);
 
   const items = useMemo(() => {
-    const dateFiltered = filterDate ? applyDateFilter(allItems, filterDate.getTime()) : allItems;
-    return applyFileVisibility(dateFiltered, ENTRY_TYPES.FILE, showFoldersOnly, dateFiltered);
-  }, [allItems, filterDate, showFoldersOnly]);
+    const afterDate = filterDate ? applyDateFilter(allItems, filterDate.getTime()) : allItems;
+    const afterSearch = searchQuery.trim()
+      ? applyNameFilter(afterDate, searchQuery.trim())
+      : afterDate;
+    return applyFileVisibility(afterSearch, ENTRY_TYPES.FILE, showFoldersOnly);
+  }, [allItems, filterDate, searchQuery, showFoldersOnly]);
 
   const handleConfirmCreate = (type: EntryType, name: string, parentId: number | 'root'): void => {
     const sanitized = sanitizeName(name);
     if (!sanitized) return;
-    const newEntry: TreeEntry = { id: Date.now(), type, name: sanitized, subCategories: [] };
+    const id = genId();
+    const newEntry: TreeEntry = { id, createdAt: id, type, name: sanitized, subCategories: [] };
     setAllItems((prev) => addEntry(prev, newEntry, parentId));
     if (parentId === 'root') setPendingRootCreate(null);
   };
@@ -83,6 +97,13 @@ function App() {
         </div>
 
         <div className="header-right">
+          <input
+            className="search-input"
+            type="search"
+            placeholder="Search…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
           <label className="filter-checkbox">
             <input
               type="checkbox"

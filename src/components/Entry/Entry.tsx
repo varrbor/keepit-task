@@ -16,6 +16,7 @@ interface EntryProps {
 function Entry({ entry, depth, onConfirmCreate, onDelete, onRename }: EntryProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [pendingChild, setPendingChild] = useState<EntryType | null>(null);
   const isDir = entry.type === ENTRY_TYPES.DIR;
 
@@ -26,7 +27,10 @@ function Entry({ entry, depth, onConfirmCreate, onDelete, onRename }: EntryProps
 
   return (
     <div>
-      <div className="entry-row" style={{ paddingLeft: `${16 + depth * 20}px` }}>
+      <div
+        className={`entry-row${isConfirmingDelete ? ' confirming' : ''}`}
+        style={{ paddingLeft: `${16 + depth * 20}px` }}
+      >
         {isDir ? (
           <button
             className={`entry-chevron${isExpanded ? ' open' : ''}`}
@@ -54,24 +58,36 @@ function Entry({ entry, depth, onConfirmCreate, onDelete, onRename }: EntryProps
         )}
 
         {!isRenaming && (
-          <div className="entry-actions">
-            {isDir && (
-              <>
-                <button className="entry-btn" onClick={() => startChildCreate(ENTRY_TYPES.DIR)}>
-                  + folder
-                </button>
-                <button className="entry-btn" onClick={() => startChildCreate(ENTRY_TYPES.FILE)}>
-                  + file
-                </button>
-              </>
-            )}
-            <button className="entry-btn" onClick={() => setIsRenaming(true)}>
-              rename
-            </button>
-            <button className="entry-btn danger" onClick={() => onDelete(entry.id)}>
-              delete
-            </button>
-          </div>
+          isConfirmingDelete ? (
+            <div className="entry-actions">
+              <span className="entry-confirm-label">Delete?</span>
+              <button className="entry-btn danger" onClick={() => onDelete(entry.id)}>
+                yes
+              </button>
+              <button className="entry-btn" onClick={() => setIsConfirmingDelete(false)}>
+                no
+              </button>
+            </div>
+          ) : (
+            <div className="entry-actions">
+              {isDir && (
+                <>
+                  <button className="entry-btn" onClick={() => startChildCreate(ENTRY_TYPES.DIR)}>
+                    + folder
+                  </button>
+                  <button className="entry-btn" onClick={() => startChildCreate(ENTRY_TYPES.FILE)}>
+                    + file
+                  </button>
+                </>
+              )}
+              <button className="entry-btn" onClick={() => setIsRenaming(true)}>
+                rename
+              </button>
+              <button className="entry-btn danger" onClick={() => setIsConfirmingDelete(true)}>
+                delete
+              </button>
+            </div>
+          )
         )}
       </div>
 

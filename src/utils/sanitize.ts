@@ -23,12 +23,16 @@ function sanitizeEntry(raw: unknown, depth = 0): TreeEntry | null {
           .filter((e): e is TreeEntry => e !== null)
       : [];
 
-  // Explicitly pick only known fields — drops __proto__ or any injected keys
+  const id = node.id as number;
+
+  // Explicitly pick only known fields — drops __proto__ or any injected keys.
+  // createdAt falls back to id for entries saved before the field was introduced.
   return {
-    id: node.id as number,
+    id,
+    createdAt: Number.isFinite(node.createdAt) ? (node.createdAt as number) : id,
     type: node.type as TreeEntry['type'],
     name: (node.name as string).slice(0, MAX_NAME_LENGTH),
-    subCategories
+    subCategories,
   };
 }
 

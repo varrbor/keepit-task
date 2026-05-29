@@ -113,6 +113,19 @@
   border-color: #fca5a5;
 }
 
+/* ── Delete confirmation ─────────────────────────────────── */
+
+.entry-row.confirming .entry-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.entry-confirm-label {
+  font-size: 11.5px;
+  color: var(--danger);
+  white-space: nowrap;
+}
+
 /* ── Children ────────────────────────────────────────────── */
 
 
