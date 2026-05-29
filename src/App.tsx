@@ -29,7 +29,7 @@ function App() {
     () => localStorage.getItem('keepit-folders-only') === 'true'
   );
 
-  const [filterDate, setFilterDate] = useState<number>(Date.now());
+  const [filterDate, setFilterDate] = useState<Date>(new Date());
   const [items, setItems] = useState<TreeEntry[]>(allItems);
 
   const handleCreate = (type: EntryType, id?: number): void => {
@@ -74,7 +74,7 @@ function App() {
   }, [showFoldersOnly]);
 
   useEffect(() => {
-    setItems(applyDateFilter(allItems, filterDate));
+    setItems(applyDateFilter(allItems, filterDate.getTime()));
   }, [filterDate]);
 
   return (
@@ -104,7 +104,7 @@ function App() {
             dateFormat="Pp"
             selected={filterDate}
             onChange={(date: Date | null) => {
-              if (date) setFilterDate(date.getTime());
+              if (date) setFilterDate(date);
             }}
           />
         </div>

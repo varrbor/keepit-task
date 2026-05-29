@@ -39,7 +39,6 @@ clarity, correctness, and maintainability.
 ## Event Handling
 
 - **AVOID** in-line event handlers in JSX
-
   - **PREFER**:
 
     ```tsx
