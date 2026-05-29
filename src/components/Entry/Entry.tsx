@@ -1,8 +1,18 @@
 import { useState } from 'react';
 import './Entry.css';
 import { ENTRY_TYPES } from '../../constants/entryTypes';
+import type { EntryType } from '../../constants/entryTypes';
+import type { TreeEntry } from '../../types';
 
-function Entry({ entry, depth, onCreate, onDelete, onRename }) {
+interface EntryProps {
+  entry: TreeEntry;
+  depth: number;
+  onCreate: (type: EntryType, id: number) => void;
+  onDelete: (id: number) => void;
+  onRename: (id: number) => void;
+}
+
+function Entry({ entry, depth, onCreate, onDelete, onRename }: EntryProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const isDir = entry.type === ENTRY_TYPES.DIR;
 
@@ -43,8 +53,8 @@ function Entry({ entry, depth, onCreate, onDelete, onRename }) {
         </div>
       </div>
 
-      {isDir && isExpanded && entry.subCategories?.length > 0 && (
-        <div className="entry-children">
+      {isDir && isExpanded && entry.subCategories.length > 0 && (
+        <div>
           {entry.subCategories.map((sub) => (
             <Entry
               key={sub.id}

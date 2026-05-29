@@ -11,10 +11,12 @@ import {
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { ENTRY_TYPES } from './constants/entryTypes';
+import type { EntryType } from './constants/entryTypes';
 import { sanitizeTree, sanitizeName, MAX_NAME_LENGTH } from './utils/sanitize';
+import type { TreeEntry } from './types';
 
 function App() {
-  const [allItems, setAllItems] = useState(() => {
+  const [allItems, setAllItems] = useState<TreeEntry[]>(() => {
     try {
       const saved = localStorage.getItem('keepit-tree');
       return saved ? sanitizeTree(JSON.parse(saved)) : [];
@@ -22,30 +24,32 @@ function App() {
       return [];
     }
   });
-  const [showFoldersOnly, setShowFoldersOnly] = useState(() => {
-    return localStorage.getItem('keepit-folders-only') === 'true';
-  });
-  const [filterDate, setFilterDate] = useState(Date.now());
-  const [items, setItems] = useState(allItems);
 
-  const handleCreate = (type, id) => {
+  const [showFoldersOnly, setShowFoldersOnly] = useState<boolean>(
+    () => localStorage.getItem('keepit-folders-only') === 'true'
+  );
+
+  const [filterDate, setFilterDate] = useState<number>(Date.now());
+  const [items, setItems] = useState<TreeEntry[]>(allItems);
+
+  const handleCreate = (type: EntryType, id?: number): void => {
     const raw = prompt(
       `Please provide the name of new ${type === ENTRY_TYPES.DIR ? 'folder' : 'file'}`
     );
     const name = sanitizeName(raw ?? '');
     if (!name) return;
-    const newEntry = { id: Date.now(), type, name, subCategories: [] };
+    const newEntry: TreeEntry = { id: Date.now(), type, name, subCategories: [] };
     const parentId = id ?? 'root';
     setItems((prev) => addEntry(prev, newEntry, parentId));
     setAllItems((prev) => addEntry(prev, newEntry, parentId));
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = (id: number): void => {
     setItems((prev) => removeEntry(id, prev));
     setAllItems((prev) => removeEntry(id, prev));
   };
 
-  const handleRename = (id) => {
+  const handleRename = (id: number): void => {
     const raw = prompt(`Please provide the new name (max ${MAX_NAME_LENGTH} chars)`);
     const name = sanitizeName(raw ?? '');
     if (!name) return;
@@ -62,7 +66,7 @@ function App() {
   }, [allItems]);
 
   useEffect(() => {
-    localStorage.setItem('keepit-folders-only', showFoldersOnly);
+    localStorage.setItem('keepit-folders-only', String(showFoldersOnly));
   }, [showFoldersOnly]);
 
   useEffect(() => {
@@ -99,7 +103,9 @@ function App() {
           <DatePicker
             dateFormat="Pp"
             selected={filterDate}
-            onChange={(date) => setFilterDate(Date.parse(date))}
+            onChange={(date: Date | null) => {
+              if (date) setFilterDate(date.getTime());
+            }}
           />
         </div>
       </header>
