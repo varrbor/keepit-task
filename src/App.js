@@ -12,10 +12,19 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
 function App() {
-  const [items, setItems] = useState([]);
-  const [allItems, setAllItems] = useState([]);
-  const [showFoldersOnly, setShowFoldersOnly] = useState(false);
+  const [allItems, setAllItems] = useState(() => {
+    try {
+      const saved = localStorage.getItem('keepit-tree');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [showFoldersOnly, setShowFoldersOnly] = useState(() => {
+    return localStorage.getItem('keepit-folders-only') === 'true';
+  });
   const [filterDate, setFilterDate] = useState(Date.now());
+  const [items, setItems] = useState(allItems);
 
   const handleCreate = (type, id) => {
     const name = prompt(`Please provide the name of new ${type === 'dir' ? 'folder' : 'file'}`);
@@ -37,6 +46,14 @@ function App() {
     setItems((prev) => renameEntry(id, prev, name.trim()));
     setAllItems((prev) => renameEntry(id, prev, name.trim()));
   };
+
+  useEffect(() => {
+    localStorage.setItem('keepit-tree', JSON.stringify(allItems));
+  }, [allItems]);
+
+  useEffect(() => {
+    localStorage.setItem('keepit-folders-only', showFoldersOnly);
+  }, [showFoldersOnly]);
 
   useEffect(() => {
     setItems(applyFileVisibility(allItems, 'file', showFoldersOnly, allItems));
@@ -67,7 +84,7 @@ function App() {
               checked={showFoldersOnly}
               onChange={() => setShowFoldersOnly((prev) => !prev)}
             />
-            Folders only
+            show folders only
           </label>
           <DatePicker
             dateFormat="Pp"
