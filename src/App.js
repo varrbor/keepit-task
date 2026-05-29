@@ -19,12 +19,8 @@ function App() {
 
   const handleCreate = (type, id) => {
     const name = prompt(`Please provide the name of new ${type === 'dir' ? 'folder' : 'file'}`);
-    const newEntry = {
-      id: Date.now(),
-      type,
-      name,
-      subCategories: []
-    };
+    if (!name?.trim()) return;
+    const newEntry = { id: Date.now(), type, name: name.trim(), subCategories: [] };
     const parentId = id ?? 'root';
     setItems((prev) => addEntry(prev, newEntry, parentId));
     setAllItems((prev) => addEntry(prev, newEntry, parentId));
@@ -37,8 +33,9 @@ function App() {
 
   const handleRename = (id) => {
     const name = prompt('Please provide the new name');
-    setItems((prev) => renameEntry(id, prev, name));
-    setAllItems((prev) => renameEntry(id, prev, name));
+    if (!name?.trim()) return;
+    setItems((prev) => renameEntry(id, prev, name.trim()));
+    setAllItems((prev) => renameEntry(id, prev, name.trim()));
   };
 
   useEffect(() => {
@@ -51,39 +48,57 @@ function App() {
 
   return (
     <div className="App">
-      <div className="header">
-        <button className="header-button" onClick={() => handleCreate('dir')}>
-          create folder
-        </button>
-        <button className="header-button" onClick={() => handleCreate('file')}>
-          create file
-        </button>
-        <div>
-          <label htmlFor="show-folders-only">show folders only</label>
-          <input
-            id="show-folders-only"
-            checked={showFoldersOnly}
-            onChange={() => setShowFoldersOnly((prev) => !prev)}
-            type="checkbox"
-          />
+      <header className="header">
+        <div className="header-left">
+          <span className="header-brand">KeepIt</span>
+          <div className="header-sep" />
+          <button className="btn btn-primary" onClick={() => handleCreate('dir')}>
+            📁 New Folder
+          </button>
+          <button className="btn" onClick={() => handleCreate('file')}>
+            📄 New File
+          </button>
+        </div>
+
+        <div className="header-right">
+          <label className="filter-checkbox">
+            <input
+              type="checkbox"
+              checked={showFoldersOnly}
+              onChange={() => setShowFoldersOnly((prev) => !prev)}
+            />
+            Folders only
+          </label>
           <DatePicker
             dateFormat="Pp"
             selected={filterDate}
             onChange={(date) => setFilterDate(Date.parse(date))}
           />
         </div>
-      </div>
+      </header>
 
-      {items.map((item) => (
-        <Entry
-          key={item.id}
-          entry={item}
-          depth={1}
-          onCreate={handleCreate}
-          onDelete={handleDelete}
-          onRename={handleRename}
-        />
-      ))}
+      <main className="page-body">
+        <div className="tree-card">
+          <div className="tree-card-header">Files &amp; Folders</div>
+          {items.length === 0 ? (
+            <div className="tree-empty">
+              <span className="tree-empty-icon">🗂️</span>
+              No items yet — create a folder or file to get started.
+            </div>
+          ) : (
+            items.map((item) => (
+              <Entry
+                key={item.id}
+                entry={item}
+                depth={0}
+                onCreate={handleCreate}
+                onDelete={handleDelete}
+                onRename={handleRename}
+              />
+            ))
+          )}
+        </div>
+      </main>
     </div>
   );
 }
