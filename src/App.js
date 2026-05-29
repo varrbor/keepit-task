@@ -11,12 +11,13 @@ import {
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { ENTRY_TYPES } from './constants/entryTypes';
+import { sanitizeTree, sanitizeName, MAX_NAME_LENGTH } from './utils/sanitize';
 
 function App() {
   const [allItems, setAllItems] = useState(() => {
     try {
       const saved = localStorage.getItem('keepit-tree');
-      return saved ? JSON.parse(saved) : [];
+      return saved ? sanitizeTree(JSON.parse(saved)) : [];
     } catch {
       return [];
     }
@@ -28,11 +29,12 @@ function App() {
   const [items, setItems] = useState(allItems);
 
   const handleCreate = (type, id) => {
-    const name = prompt(
+    const raw = prompt(
       `Please provide the name of new ${type === ENTRY_TYPES.DIR ? 'folder' : 'file'}`
     );
-    if (!name?.trim()) return;
-    const newEntry = { id: Date.now(), type, name: name.trim(), subCategories: [] };
+    const name = sanitizeName(raw ?? '');
+    if (!name) return;
+    const newEntry = { id: Date.now(), type, name, subCategories: [] };
     const parentId = id ?? 'root';
     setItems((prev) => addEntry(prev, newEntry, parentId));
     setAllItems((prev) => addEntry(prev, newEntry, parentId));
@@ -44,14 +46,19 @@ function App() {
   };
 
   const handleRename = (id) => {
-    const name = prompt('Please provide the new name');
-    if (!name?.trim()) return;
-    setItems((prev) => renameEntry(id, prev, name.trim()));
-    setAllItems((prev) => renameEntry(id, prev, name.trim()));
+    const raw = prompt(`Please provide the new name (max ${MAX_NAME_LENGTH} chars)`);
+    const name = sanitizeName(raw ?? '');
+    if (!name) return;
+    setItems((prev) => renameEntry(id, prev, name));
+    setAllItems((prev) => renameEntry(id, prev, name));
   };
 
   useEffect(() => {
-    localStorage.setItem('keepit-tree', JSON.stringify(allItems));
+    try {
+      localStorage.setItem('keepit-tree', JSON.stringify(allItems));
+    } catch {
+      console.warn('localStorage quota exceeded — tree not persisted.');
+    }
   }, [allItems]);
 
   useEffect(() => {
