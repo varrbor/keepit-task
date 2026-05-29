@@ -1,114 +1,112 @@
-export const createCategory = (categories, newCategory, parentId) => {
+export const addEntry = (entries, newEntry, parentId) => {
   if (parentId === 'root') {
-    return [...categories, newCategory];
+    return [...entries, newEntry];
   }
-  return categories.map((category) => createCategoryRecursion(category, newCategory, parentId));
+  return entries.map((entry) => addEntryRecursive(entry, newEntry, parentId));
 };
 
-const createCategoryRecursion = (currentCategory, newCategory, parentId) => {
-  if (currentCategory.id === parentId)
+const addEntryRecursive = (entry, newEntry, parentId) => {
+  if (entry.id === parentId)
     return {
-      ...currentCategory,
-      subCategories: [...currentCategory.subCategories, newCategory]
+      ...entry,
+      subCategories: [...entry.subCategories, newEntry]
     };
   return {
-    ...currentCategory,
-    subCategories: currentCategory.subCategories.map((c) =>
-      createCategoryRecursion(c, newCategory, parentId)
-    )
+    ...entry,
+    subCategories: entry.subCategories.map((e) => addEntryRecursive(e, newEntry, parentId))
   };
 };
 
-export const deleteCategory = (id, categories) => {
-  if (categories.map((category) => category.id).includes(id)) {
-    return categories.filter((category) => category.id !== id);
+export const removeEntry = (id, entries) => {
+  if (entries.map((entry) => entry.id).includes(id)) {
+    return entries.filter((entry) => entry.id !== id);
   }
-  return categories.map((category) => deleteCategoryRecursion(category, id));
+  return entries.map((entry) => removeEntryRecursive(entry, id));
 };
 
-export const updateCategory = (id, categories, name) => {
-  if (categories.map((category) => category.id).includes(id)) {
-    return categories.map((category) => {
-      if (category.id === id) {
-        return { ...category, name };
+export const renameEntry = (id, entries, name) => {
+  if (entries.map((entry) => entry.id).includes(id)) {
+    return entries.map((entry) => {
+      if (entry.id === id) {
+        return { ...entry, name };
       }
-      return category;
+      return entry;
     });
   }
-  return categories.map((category) => updateCategoryRecursion(category, id, name));
+  return entries.map((entry) => renameEntryRecursive(entry, id, name));
 };
 
-function updateCategoryRecursion(category, id, name) {
-  if (category.subCategories.map((c) => c.id).includes(id))
+function renameEntryRecursive(entry, id, name) {
+  if (entry.subCategories.map((e) => e.id).includes(id))
     return {
-      ...category,
-      subCategories: category.subCategories.map((category) => {
-        if (category.id === id) {
-          return { ...category, name };
+      ...entry,
+      subCategories: entry.subCategories.map((e) => {
+        if (e.id === id) {
+          return { ...e, name };
         }
-        return category;
+        return e;
       })
     };
   return {
-    ...category,
-    subCategories: category.subCategories.map((c) => updateCategoryRecursion(c, id, name))
+    ...entry,
+    subCategories: entry.subCategories.map((e) => renameEntryRecursive(e, id, name))
   };
 }
 
-function deleteCategoryRecursion(tree, id) {
-  if (tree.subCategories.map((c) => c.id).includes(id))
+function removeEntryRecursive(entry, id) {
+  if (entry.subCategories.map((e) => e.id).includes(id))
     return {
-      ...tree,
-      subCategories: tree.subCategories.filter((c) => c.id !== id)
+      ...entry,
+      subCategories: entry.subCategories.filter((e) => e.id !== id)
     };
   return {
-    ...tree,
-    subCategories: tree.subCategories.map((c) => deleteCategoryRecursion(c, id))
+    ...entry,
+    subCategories: entry.subCategories.map((e) => removeEntryRecursive(e, id))
   };
 }
 
-export const hideCategory = (categories, type, isChecked, cache) => {
-  if (isChecked) {
-    return categories
-      .filter((category) => category.type !== type)
-      .map((category) => hideCategoryRecursion(category, type));
+export const applyFileVisibility = (entries, type, showFoldersOnly, allItems) => {
+  if (showFoldersOnly) {
+    return entries
+      .filter((entry) => entry.type !== type)
+      .map((entry) => applyFileVisibilityRecursive(entry, type));
   } else {
-    return cache.map((category) => updateStateRecursion(category));
+    return allItems.map((entry) => cloneRecursive(entry));
   }
 };
 
-export const filterCategory = (categories, startDate) => {
-  if (!startDate) return;
+export const applyDateFilter = (entries, filterDate) => {
+  if (!filterDate) return;
 
-  return categories
-    .filter((category) => category.id < startDate)
-    .map((category) => filterRecursion(category, startDate));
+  return entries
+    .filter((entry) => entry.id < filterDate)
+    .map((entry) => applyDateFilterRecursive(entry, filterDate));
 };
 
-function filterRecursion(tree, date) {
-  if (!tree) return;
+function applyDateFilterRecursive(entry, date) {
+  if (!entry) return;
   return {
-    ...tree,
-    subCategories: tree.subCategories
-      .filter((category) => category.id < date)
-      .map((c) => updateStateRecursion(c))
+    ...entry,
+    subCategories: entry.subCategories
+      .filter((e) => e.id < date)
+      .map((e) => cloneRecursive(e))
   };
 }
 
-function hideCategoryRecursion(tree, type) {
-  if (!tree) return;
+function applyFileVisibilityRecursive(entry, type) {
+  if (!entry) return;
   return {
-    ...tree,
-    subCategories: tree.subCategories
-      .filter((category) => category.type !== type)
-      .map((c) => hideCategoryRecursion(c, type))
+    ...entry,
+    subCategories: entry.subCategories
+      .filter((e) => e.type !== type)
+      .map((e) => applyFileVisibilityRecursive(e, type))
   };
 }
 
-function updateStateRecursion(tree) {
-  if (!tree) return;
+function cloneRecursive(entry) {
+  if (!entry) return;
   return {
-    ...tree,
-    subCategories: tree.subCategories.map((c) => updateStateRecursion(c))
+    ...entry,
+    subCategories: entry.subCategories.map((e) => cloneRecursive(e))
   };
 }

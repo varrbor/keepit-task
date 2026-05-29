@@ -1,44 +1,42 @@
 import { useState } from 'react';
 import './Entry.css';
-function Entry({
-  entry,
-  depth,
-  createCategoryHandler,
-  deleteCategoryHandler,
-  updateCategoryHandler
-}) {
-  const [isExpanded, setExpandable] = useState(false);
-  function onCreateSubfolder(type) {
-    createCategoryHandler(type, entry.id);
-  }
-  function onDeleteSubfolder() {
-    deleteCategoryHandler(entry.id);
+
+function Entry({ entry, depth, onCreate, onDelete, onRename }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  function handleCreate(type) {
+    onCreate(type, entry.id);
   }
 
-  function onUpdateSubfolder() {
-    updateCategoryHandler(entry.id);
+  function handleDelete() {
+    onDelete(entry.id);
   }
+
+  function handleRename() {
+    onRename(entry.id);
+  }
+
   return (
     <div>
       {entry.type === 'dir' ? (
         <div className="main">
-          <button className="dir" onClick={() => setExpandable(!isExpanded)}>
+          <button className="dir" onClick={() => setIsExpanded(!isExpanded)}>
             {isExpanded ? '- ' : '+ '}
             {entry.name}
           </button>
           <div className="handlers">
-            <button onClick={() => onCreateSubfolder('dir')}>create subfolder</button>
-            <button onClick={() => onCreateSubfolder('file')}>create file</button>
-            <button onClick={() => onDeleteSubfolder('file')}> delete folder</button>
-            <button onClick={() => onUpdateSubfolder('file')}> rename folder</button>
+            <button onClick={() => handleCreate('dir')}>create subfolder</button>
+            <button onClick={() => handleCreate('file')}>create file</button>
+            <button onClick={handleDelete}>delete folder</button>
+            <button onClick={handleRename}>rename folder</button>
           </div>
         </div>
       ) : (
         <div className="main">
           {entry.name}
           <div className="handlers">
-            <button onClick={() => onDeleteSubfolder('file')}> delete file</button>
-            <button onClick={() => onUpdateSubfolder('file')}> rename file</button>
+            <button onClick={handleDelete}>delete file</button>
+            <button onClick={handleRename}>rename file</button>
           </div>
         </div>
       )}
@@ -46,14 +44,14 @@ function Entry({
       {isExpanded && (
         <div style={{ paddingLeft: `${depth * 10}px` }}>
           {entry.subCategories &&
-            entry.subCategories.map((entry) => (
+            entry.subCategories.map((subEntry) => (
               <Entry
-                key={entry.id}
-                entry={entry}
+                key={subEntry.id}
+                entry={subEntry}
                 depth={depth + 1}
-                createCategoryHandler={createCategoryHandler}
-                deleteCategoryHandler={deleteCategoryHandler}
-                updateCategoryHandler={updateCategoryHandler}
+                onCreate={onCreate}
+                onDelete={onDelete}
+                onRename={onRename}
               />
             ))}
         </div>

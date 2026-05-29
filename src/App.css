@@ -1,9 +1,8 @@
 .App {
   text-align: left;
   padding: 50px;
-  
 }
-.header{
+.header {
   display: flex;
   align-items: center;
   border-bottom: 1px solid black;
@@ -12,7 +11,6 @@
   display: flex;
   align-items: center;
 }
-.header-button{
+.header-button {
   margin: 5px;
 }
-
